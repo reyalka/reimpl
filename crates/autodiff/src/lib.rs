@@ -41,16 +41,6 @@ impl Mul for Dual {
     }
 }
 
-impl Mul<f64> for Dual {
-    type Output = Self;
-    fn mul(self, rhs: f64) -> Self::Output {
-        Self {
-            real: self.real * rhs,
-            dual: self.dual * rhs,
-        }
-    }
-}
-
 fn diff<T>(f: T, val: f64) -> (f64, f64)
 where
     T: Fn(Dual) -> Dual,
@@ -97,7 +87,7 @@ mod tests {
 
     #[test]
     fn test_of_linear_function() {
-        let (y, dy) = diff(|x| x * 2.0, 3.0);
+        let (y, dy) = diff(|x| x * Dual::from(2.0), 3.0);
 
         assert_eq!(y, 6.0);
         assert_eq!(dy, 2.0);
