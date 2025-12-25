@@ -12,6 +12,12 @@ impl Dual {
     }
 }
 
+impl From<f64> for Dual {
+    fn from(value: f64) -> Self {
+        Self { real: value, dual: 0.0 }
+    }
+}
+
 impl Add for Dual {
     type Output = Self;
 
@@ -92,6 +98,14 @@ mod tests {
     #[test]
     fn test_of_linear_function() {
         let (y, dy) = diff(|x| x * 2.0, 3.0);
+
+        assert_eq!(y, 6.0);
+        assert_eq!(dy, 2.0);
+    }
+
+    #[test]
+    fn test_of_linear_function_reversed() {
+        let (y, dy) = diff(|x| Dual::from(2.0) * x, 3.0);
 
         assert_eq!(y, 6.0);
         assert_eq!(dy, 2.0);
