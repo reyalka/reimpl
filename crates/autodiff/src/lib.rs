@@ -10,7 +10,7 @@ impl Dual {
     fn new(real: f64) -> Self {
         return Self { real, dual: 1.0 };
     }
-    
+
     fn exp(self) -> Self {
         Self {
             real: self.real.exp(),
@@ -21,7 +21,10 @@ impl Dual {
 
 impl From<f64> for Dual {
     fn from(value: f64) -> Self {
-        Self { real: value, dual: 0.0 }
+        Self {
+            real: value,
+            dual: 0.0,
+        }
     }
 }
 
@@ -110,7 +113,12 @@ mod tests {
 
     fn assert_approx_eq(a: f64, b: f64) {
         let tol = 1e-10;
-        assert!((a - b).abs() < tol, "Expected {} to be approximately equal to {}", a, b);
+        assert!(
+            (a - b).abs() < tol,
+            "Expected {} to be approximately equal to {}",
+            a,
+            b
+        );
     }
 
     #[test]
