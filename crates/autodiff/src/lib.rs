@@ -1,4 +1,4 @@
-use std::ops;
+use std::ops::{Add, Mul};
 
 #[derive(Debug, Clone, Copy)]
 struct Dual {
@@ -12,7 +12,7 @@ impl Dual {
     }
 }
 
-impl ops::Add for Dual {
+impl Add for Dual {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
@@ -23,7 +23,7 @@ impl ops::Add for Dual {
     }
 }
 
-impl ops::Mul for Dual {
+impl Mul for Dual {
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self::Output {
@@ -31,6 +31,16 @@ impl ops::Mul for Dual {
         Self {
             real: self.real * rhs.real,
             dual: (self.real * rhs.dual + self.dual * rhs.real),
+        }
+    }
+}
+
+impl Mul<f64> for Dual {
+    type Output = Self;
+    fn mul(self, rhs: f64) -> Self::Output {
+        Self {
+            real: self.real * rhs,
+            dual: self.dual * rhs,
         }
     }
 }
@@ -79,4 +89,11 @@ mod tests {
         assert_eq!(dy, 2.0);
     }
 
+    #[test]
+    fn test_of_linear_function() {
+        let (y, dy) = diff(|x| x * 2.0, 3.0);
+
+        assert_eq!(y, 6.0);
+        assert_eq!(dy, 2.0);
+    }
 }
