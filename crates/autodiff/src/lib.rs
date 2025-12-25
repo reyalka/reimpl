@@ -1,4 +1,4 @@
-use std::ops::{Add, Mul};
+use std::ops::{Add, Mul, Sub};
 
 #[derive(Debug, Clone, Copy)]
 struct Dual {
@@ -35,6 +35,17 @@ impl Add for Dual {
         Self {
             real: self.real + rhs.real,
             dual: self.dual + rhs.dual,
+        }
+    }
+}
+
+impl Sub for Dual {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        Self {
+            real: self.real - rhs.real,
+            dual: self.dual - rhs.dual,
         }
     }
 }
@@ -122,6 +133,13 @@ mod tests {
     }
 
     #[test]
+    fn test_of_subtraction_function() {
+        let (y, dy) = diff(|x| x - Dual::from(1.0), 3.0);
+        assert_approx_eq(y, 2.0);
+        assert_approx_eq(dy, 1.0);
+    }
+
+    #[test]
     fn test_of_exponential_function() {
         let (y, dy) = diff(|x| x.exp(), 2.0);
         assert_approx_eq(y, std::f64::consts::E.powf(2.0));
@@ -133,5 +151,17 @@ mod tests {
         let (y, dy) = diff(|x| Dual::from(2.0) * x.exp(), 1.0);
         assert_approx_eq(y, 2.0 * std::f64::consts::E);
         assert_approx_eq(dy, 2.0 * std::f64::consts::E);
+    }
+
+    #[test]
+    // test f(x) = exp(x^3 + x)
+    // f'(x) = exp(x^3 + x) * (3x^2 + 1)
+    fn test_of_composite_function() {
+        let (y, dy) = diff(|x| (x * x * x + x).exp(), 2.0);
+        let expected_y = (8.0 + 2.0 as f64).exp();
+        let expected_dy = expected_y * (3.0 * 4.0 + 1.0); // exp(x^3 + x) * (3x^2 + 1) at x=2
+
+        assert_approx_eq(y, expected_y);
+        assert_approx_eq(dy, expected_dy);
     }
 }
