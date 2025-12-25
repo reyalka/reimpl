@@ -11,8 +11,20 @@ impl Dual {
         return Self { real, dual: 1.0 };
     }
 }
+
+impl ops::Add for Dual {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Self {
+            real: self.real + rhs.real,
+            dual: self.dual + rhs.dual,
+        }
+    }
+}
+
 impl ops::Mul for Dual {
-    type Output = Dual;
+    type Output = Self;
 
     fn mul(self, rhs: Self) -> Self::Output {
         // (a + bε)(c + dε) = ac + (ad + bc)ε
@@ -50,4 +62,21 @@ mod tests {
         assert_eq!(y, 9.0);
         assert_eq!(dy, 6.0);
     }
+
+    #[test]
+    fn diff_of_cube_function() {
+        let (y, dy) = diff(|x| x * x * x, 3.0);
+
+        assert_eq!(y, 27.0);
+        assert_eq!(dy, 27.0);
+    }
+
+    #[test]
+    fn diff_of_double_function() {
+        let (y, dy) = diff(|x| x + x, 3.0);
+
+        assert_eq!(y, 6.0);
+        assert_eq!(dy, 2.0);
+    }
+
 }
