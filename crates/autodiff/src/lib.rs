@@ -10,6 +10,13 @@ impl Dual {
     fn new(real: f64) -> Self {
         return Self { real, dual: 1.0 };
     }
+    
+    fn exp(self) -> Self {
+        Self {
+            real: self.real.exp(),
+            dual: self.dual * self.real.exp(),
+        }
+    }
 }
 
 impl From<f64> for Dual {
@@ -99,5 +106,24 @@ mod tests {
 
         assert_eq!(y, 6.0);
         assert_eq!(dy, 2.0);
+    }
+
+    fn assert_approx_eq(a: f64, b: f64) {
+        let tol = 1e-10;
+        assert!((a - b).abs() < tol, "Expected {} to be approximately equal to {}", a, b);
+    }
+
+    #[test]
+    fn test_of_exponential_function() {
+        let (y, dy) = diff(|x| x.exp(), 2.0);
+        assert_approx_eq(y, std::f64::consts::E.powf(2.0));
+        assert_approx_eq(dy, std::f64::consts::E.powf(2.0));
+    }
+
+    #[test]
+    fn test_of_exponential_function_with_multiplier() {
+        let (y, dy) = diff(|x| Dual::from(2.0) * x.exp(), 1.0);
+        assert_approx_eq(y, 2.0 * std::f64::consts::E);
+        assert_approx_eq(dy, 2.0 * std::f64::consts::E);
     }
 }
