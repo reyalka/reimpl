@@ -1,4 +1,2 @@
 [workspace]
-members = [
-	"crates/bf",
-]
+members = ["crates/autodiff", "crates/bf"]
