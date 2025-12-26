@@ -33,6 +33,13 @@ impl Dual {
         }
     }
 
+    fn tan(self) -> Self {
+        Self {
+            real: self.real.tan(),
+            dual: self.dual / (self.real.cos() * self.real.cos()),
+        }
+    }
+
     fn ln(self) -> Self {
         Self {
             real: self.real.ln(),
@@ -344,6 +351,15 @@ mod tests {
         let (y, dy) = diff(|x| x.sin() * x.sin() + x.cos(), std::f64::consts::PI);
         assert_approx_eq(y, -1.0);
         assert_approx_eq(dy, 0.0);
+    }
+
+    #[test]
+    // f(x) = tan(x)
+    // f'(x) = 1/cos^2(x)
+    fn test_of_tangent_function() {
+        let (y, dy) = diff(|x| x.tan(), std::f64::consts::FRAC_PI_4);
+        assert_approx_eq(y, 1.0);
+        assert_approx_eq(dy, 2.0);
     }
 
     #[test]
