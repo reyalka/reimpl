@@ -107,6 +107,86 @@ impl Div for Dual {
     }
 }
 
+impl Add<f64> for Dual {
+    type Output = Self;
+    fn add(self, rhs: f64) -> Self::Output {
+        Self {
+            real: self.real + rhs,
+            dual: self.dual,
+        }
+    }
+}
+
+impl Add<Dual> for f64 {
+    type Output = Dual;
+    fn add(self, rhs: Dual) -> Self::Output {
+        Dual {
+            real: self + rhs.real,
+            dual: rhs.dual,
+        }
+    }
+}
+
+impl Sub<f64> for Dual {
+    type Output = Self;
+    fn sub(self, rhs: f64) -> Self::Output {
+        Self {
+            real: self.real - rhs,
+            dual: self.dual,
+        }
+    }
+}
+
+impl Sub<Dual> for f64 {
+    type Output = Dual;
+    fn sub(self, rhs: Dual) -> Self::Output {
+        Dual {
+            real: self - rhs.real,
+            dual: -rhs.dual,
+        }
+    }
+}
+
+impl Mul<f64> for Dual {
+    type Output = Self;
+    fn mul(self, rhs: f64) -> Self::Output {
+        Self {
+            real: self.real * rhs,
+            dual: self.dual * rhs,
+        }
+    }
+}
+
+impl Mul<Dual> for f64 {
+    type Output = Dual;
+    fn mul(self, rhs: Dual) -> Self::Output {
+        Dual {
+            real: self * rhs.real,
+            dual: self * rhs.dual,
+        }
+    }
+}
+
+impl Div<f64> for Dual {
+    type Output = Self;
+    fn div(self, rhs: f64) -> Self::Output {
+        Self {
+            real: self.real / rhs,
+            dual: self.dual / rhs,
+        }
+    }
+}
+
+impl Div<Dual> for f64 {
+    type Output = Dual;
+    fn div(self, rhs: Dual) -> Self::Output {
+        Dual {
+            real: self / rhs.real,
+            dual: -self * rhs.dual / (rhs.real * rhs.real),
+        }
+    }
+}
+
 impl Display for Dual {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{} + {}ε", self.real, self.dual)
@@ -159,7 +239,7 @@ mod tests {
 
     #[test]
     fn test_of_linear_function() {
-        let (y, dy) = diff(|x| x * Dual::from(2.0), 3.0);
+        let (y, dy) = diff(|x| x * 2.0, 3.0);
 
         assert_eq!(y, 6.0);
         assert_eq!(dy, 2.0);
@@ -167,7 +247,7 @@ mod tests {
 
     #[test]
     fn test_of_linear_function_reversed() {
-        let (y, dy) = diff(|x| Dual::from(2.0) * x, 3.0);
+        let (y, dy) = diff(|x| 2.0 * x, 3.0);
 
         assert_eq!(y, 6.0);
         assert_eq!(dy, 2.0);
@@ -185,7 +265,7 @@ mod tests {
 
     #[test]
     fn test_of_subtraction_function() {
-        let (y, dy) = diff(|x| x - Dual::from(1.0), 3.0);
+        let (y, dy) = diff(|x| x - 1.0, 3.0);
         assert_approx_eq(y, 2.0);
         assert_approx_eq(dy, 1.0);
     }
@@ -199,7 +279,7 @@ mod tests {
 
     #[test]
     fn test_of_exponential_function_with_multiplier() {
-        let (y, dy) = diff(|x| Dual::from(2.0) * x.exp(), 1.0);
+        let (y, dy) = diff(|x| 2.0 * x.exp(), 1.0);
         assert_approx_eq(y, 2.0 * std::f64::consts::E);
         assert_approx_eq(dy, 2.0 * std::f64::consts::E);
     }
@@ -225,7 +305,7 @@ mod tests {
 
     #[test]
     fn test_of_negative_function_with_subtraction() {
-        let (y, dy) = diff(|x| -x - Dual::from(2.0), 3.0);
+        let (y, dy) = diff(|x| -x - 2.0, 3.0);
         assert_approx_eq(y, -5.0);
         assert_approx_eq(dy, -1.0);
     }
@@ -234,7 +314,7 @@ mod tests {
     // f(x) = 1 / x
     // f'(x) = -1 / x^2
     fn test_of_diverse_function() {
-        let (y, dy) = diff(|x| Dual::from(1.0) / x, 2.0);
+        let (y, dy) = diff(|x| 1.0 / x, 2.0);
         assert_approx_eq(y, 0.5);
         assert_approx_eq(dy, -0.25);
     }
@@ -243,7 +323,7 @@ mod tests {
     // f(x) = sin x
     // f'(x) = cos x
     fn test_of_sine_function() {
-        let (y, dy) = diff(|x| (x.exp() - (-x).exp()) / Dual::from(2.0), 0.0);
+        let (y, dy) = diff(|x| (x.exp() - (-x).exp()) / 2.0, 0.0);
         assert_approx_eq(y, 0.0);
         assert_approx_eq(dy, 1.0);
     }
@@ -252,7 +332,7 @@ mod tests {
     // f(x) = cos x
     // f'(x) = -sin x
     fn test_of_cosine_function() {
-        let (y, dy) = diff(|x| (x.exp() + (-x).exp()) / Dual::from(2.0), 0.0);
+        let (y, dy) = diff(|x| (x.exp() + (-x).exp()) / 2.0, 0.0);
         assert_approx_eq(y, 1.0);
         assert_approx_eq(dy, 0.0);
     }
