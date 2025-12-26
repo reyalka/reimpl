@@ -1,4 +1,5 @@
-use std::ops::{Add, Mul, Sub};
+use std::fmt::Display;
+use std::ops::{Add, Div, Mul, Neg, Sub};
 
 #[derive(Debug, Clone, Copy)]
 struct Dual {
@@ -15,6 +16,27 @@ impl Dual {
         Self {
             real: self.real.exp(),
             dual: self.dual * self.real.exp(),
+        }
+    }
+
+    fn sin(self) -> Self {
+        Self {
+            real: self.real.sin(),
+            dual: self.dual * self.real.cos(),
+        }
+    }
+
+    fn cos(self) -> Self {
+        Self {
+            real: self.real.cos(),
+            dual: -self.dual * self.real.sin(),
+        }
+    }
+
+    fn ln(self) -> Self {
+        Self {
+            real: self.real.ln(),
+            dual: self.dual / self.real,
         }
     }
 }
@@ -50,6 +72,17 @@ impl Sub for Dual {
     }
 }
 
+impl Neg for Dual {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        Self {
+            real: -self.real,
+            dual: -self.dual,
+        }
+    }
+}
+
 impl Mul for Dual {
     type Output = Self;
 
@@ -59,6 +92,24 @@ impl Mul for Dual {
             real: self.real * rhs.real,
             dual: (self.real * rhs.dual + self.dual * rhs.real),
         }
+    }
+}
+
+impl Div for Dual {
+    type Output = Self;
+
+    fn div(self, rhs: Self) -> Self::Output {
+        // (a + bε) / (c + dε) = (a/c) + ((b*c - a*d)/c^2)ε
+        Self {
+            real: self.real / rhs.real,
+            dual: (self.dual * rhs.real - self.real * rhs.dual) / (rhs.real * rhs.real),
+        }
+    }
+}
+
+impl Display for Dual {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{} + {}ε", self.real, self.dual)
     }
 }
 
@@ -154,7 +205,7 @@ mod tests {
     }
 
     #[test]
-    // test f(x) = exp(x^3 + x)
+    // f(x) = exp(x^3 + x)
     // f'(x) = exp(x^3 + x) * (3x^2 + 1)
     fn test_of_composite_function() {
         let (y, dy) = diff(|x| (x * x * x + x).exp(), 2.0);
@@ -163,5 +214,64 @@ mod tests {
 
         assert_approx_eq(y, expected_y);
         assert_approx_eq(dy, expected_dy);
+    }
+
+    #[test]
+    fn test_of_negative_function() {
+        let (y, dy) = diff(|x| -x, 3.0);
+        assert_approx_eq(y, -3.0);
+        assert_approx_eq(dy, -1.0);
+    }
+
+    #[test]
+    fn test_of_negative_function_with_subtraction() {
+        let (y, dy) = diff(|x| -x - Dual::from(2.0), 3.0);
+        assert_approx_eq(y, -5.0);
+        assert_approx_eq(dy, -1.0);
+    }
+
+    #[test]
+    // f(x) = 1 / x
+    // f'(x) = -1 / x^2
+    fn test_of_diverse_function() {
+        let (y, dy) = diff(|x| Dual::from(1.0) / x, 2.0);
+        assert_approx_eq(y, 0.5);
+        assert_approx_eq(dy, -0.25);
+    }
+
+    #[test]
+    // f(x) = sin x
+    // f'(x) = cos x
+    fn test_of_sine_function() {
+        let (y, dy) = diff(|x| (x.exp() - (-x).exp()) / Dual::from(2.0), 0.0);
+        assert_approx_eq(y, 0.0);
+        assert_approx_eq(dy, 1.0);
+    }
+
+    #[test]
+    // f(x) = cos x
+    // f'(x) = -sin x
+    fn test_of_cosine_function() {
+        let (y, dy) = diff(|x| (x.exp() + (-x).exp()) / Dual::from(2.0), 0.0);
+        assert_approx_eq(y, 1.0);
+        assert_approx_eq(dy, 0.0);
+    }
+
+    #[test]
+    // f(x) = sin^2(x) + cos x
+    // f'(x) = 2 sin(x) cos(x) - sin(x)
+    fn test_of_combined_trigonometric_function() {
+        let (y, dy) = diff(|x| x.sin() * x.sin() + x.cos(), std::f64::consts::PI);
+        assert_approx_eq(y, -1.0);
+        assert_approx_eq(dy, 0.0);
+    }
+
+    #[test]
+    // f(x) = ln(x)
+    // f'(x) = 1/x
+    fn test_of_logarithm_function() {
+        let (y, dy) = diff(|x| x.ln(), 2.0);
+        assert_approx_eq(y, std::f64::consts::LN_2);
+        assert_approx_eq(dy, 1.0 / 2.0);
     }
 }
