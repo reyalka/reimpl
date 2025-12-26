@@ -2,7 +2,7 @@ use std::fmt::Display;
 use std::ops::{Add, Div, Mul, Neg, Sub};
 
 #[derive(Debug, Clone, Copy)]
-struct Dual {
+pub struct Dual {
     real: f64,
     dual: f64,
 }
@@ -193,7 +193,7 @@ impl Display for Dual {
     }
 }
 
-fn diff<T>(f: T, val: f64) -> (f64, f64)
+pub fn diff<T>(f: T, val: f64) -> (f64, f64)
 where
     T: Fn(Dual) -> Dual,
 {
