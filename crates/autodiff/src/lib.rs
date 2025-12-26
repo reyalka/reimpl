@@ -9,7 +9,7 @@ pub struct Dual {
 
 impl Dual {
     fn new(real: f64) -> Self {
-        return Self { real, dual: 1.0 };
+        Self { real, dual: 1.0 }
     }
 
     fn exp(self) -> Self {
@@ -213,7 +213,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn diff_of_identify_function() {
+    fn test_of_identity_function() {
         let (y, dy) = diff(|x| x, 3.0);
 
         assert_eq!(y, 3.0);
@@ -221,7 +221,7 @@ mod tests {
     }
 
     #[test]
-    fn diff_of_square_funciton() {
+    fn test_of_square_function() {
         let (y, dy) = diff(|x| x * x, 3.0);
 
         assert_eq!(y, 9.0);
@@ -229,7 +229,7 @@ mod tests {
     }
 
     #[test]
-    fn diff_of_cube_function() {
+    fn test_of_cube_function() {
         let (y, dy) = diff(|x| x * x * x, 3.0);
 
         assert_eq!(y, 27.0);
@@ -237,7 +237,7 @@ mod tests {
     }
 
     #[test]
-    fn diff_of_double_function() {
+    fn test_of_double_function() {
         let (y, dy) = diff(|x| x + x, 3.0);
 
         assert_eq!(y, 6.0);
@@ -296,7 +296,7 @@ mod tests {
     // f'(x) = exp(x^3 + x) * (3x^2 + 1)
     fn test_of_composite_function() {
         let (y, dy) = diff(|x| (x * x * x + x).exp(), 2.0);
-        let expected_y = (8.0 + 2.0 as f64).exp();
+        let expected_y = (8.0_f64 + 2.0).exp();
         let expected_dy = expected_y * (3.0 * 4.0 + 1.0); // exp(x^3 + x) * (3x^2 + 1) at x=2
 
         assert_approx_eq(y, expected_y);
@@ -320,25 +320,25 @@ mod tests {
     #[test]
     // f(x) = 1 / x
     // f'(x) = -1 / x^2
-    fn test_of_diverse_function() {
+    fn test_of_reciprocal_function() {
         let (y, dy) = diff(|x| 1.0 / x, 2.0);
         assert_approx_eq(y, 0.5);
         assert_approx_eq(dy, -0.25);
     }
 
     #[test]
-    // f(x) = sin x
-    // f'(x) = cos x
-    fn test_of_sine_function() {
+    // f(x) = sinh x
+    // f'(x) = cosh x
+    fn test_of_sinh_function() {
         let (y, dy) = diff(|x| (x.exp() - (-x).exp()) / 2.0, 0.0);
         assert_approx_eq(y, 0.0);
         assert_approx_eq(dy, 1.0);
     }
 
     #[test]
-    // f(x) = cos x
-    // f'(x) = -sin x
-    fn test_of_cosine_function() {
+    // f(x) = cosh x
+    // f'(x) = sinh x
+    fn test_of_cosh_function() {
         let (y, dy) = diff(|x| (x.exp() + (-x).exp()) / 2.0, 0.0);
         assert_approx_eq(y, 1.0);
         assert_approx_eq(dy, 0.0);
